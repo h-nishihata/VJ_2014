@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "E4B69B5A0A3A1756003C02F2"
-               BuildableName = "StateMachine.app"
-               BlueprintName = "StateMachine"
-               ReferencedContainer = "container:StateMachine.xcodeproj">
+               BuildableName = "vjTest.app"
+               BlueprintName = "vjTest"
+               ReferencedContainer = "container:vjTest.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "E4B69B5A0A3A1756003C02F2"
-            BuildableName = "StateMachine.app"
-            BlueprintName = "StateMachine"
-            ReferencedContainer = "container:StateMachine.xcodeproj">
+            BuildableName = "vjTest.app"
+            BlueprintName = "vjTest"
+            ReferencedContainer = "container:vjTest.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </TestAction>
@@ -52,9 +52,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "E4B69B5A0A3A1756003C02F2"
-            BuildableName = "StateMachine.app"
-            BlueprintName = "StateMachine"
-            ReferencedContainer = "container:StateMachine.xcodeproj">
+            BuildableName = "vjTest.app"
+            BlueprintName = "vjTest"
+            ReferencedContainer = "container:vjTest.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>
@@ -70,9 +70,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "E4B69B5A0A3A1756003C02F2"
-            BuildableName = "StateMachine.app"
-            BlueprintName = "StateMachine"
-            ReferencedContainer = "container:StateMachine.xcodeproj">
+            BuildableName = "vjTest.app"
+            BlueprintName = "vjTest"
+            ReferencedContainer = "container:vjTest.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
