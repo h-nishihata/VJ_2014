@@ -6,6 +6,7 @@
 
 #define kNumTestNodes 4
 #define kNumCameras 2
+#define numBoxes 50
 
 class ofApp : public ofBaseApp {
 public:
@@ -21,24 +22,32 @@ public:
     
     
 // *****    visual  *****
-    int camToView;
-    int lookatIndex[kNumCameras];
-    
-    float xAxis, yAxis, zAxis;
-    bool xFlag, yFlag, zFlag;
-    
-    ofLight light;
-    ofCamera cam[kNumCameras];
-    ofNode testNodes[kNumTestNodes];
-    
-    ofSpherePrimitive s;
-    
     ofFbo			myFbo_00;
     ofFbo			myFbo_01;
     ofxPostGlitch	myGlitch_00;
     ofxPostGlitch	myGlitch_01;
-    
+
     int switchScene;
+    int col;
+    
+    int lookatIndex[kNumCameras];
+    ofNode testNodes[kNumTestNodes];
+    
+    float xAxis, yAxis, zAxis;
+    bool xFlag, yFlag, zFlag;
+    ofCamera cam[kNumCameras];
+
+    ofLight light;
+    
+    int width;
+    int height;
+    float extrusionAmount;
+    ofVboMesh mainMesh;
+    
+    ofBoxPrimitive box[numBoxes];
+    ofVec3f pos[numBoxes];
+    ofVec3f vel[numBoxes];
+    
     
 // *****    sounds  *****
     //左右2chのFFTの入出力の値を確保

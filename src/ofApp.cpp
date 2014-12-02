@@ -3,11 +3,13 @@
 //--------------------------------------------------------------
 void ofApp::setup(){
     
+    ofSetFrameRate(60);
     ofSetVerticalSync(true);
     ofEnableDepthTest();
     
-    ofBackground(0, 0, 0);
+    ofBackground(0);
     
+    //buffers
     myFbo_00.allocate(1024, 768, GL_RGBA);
     myFbo_01.allocate(1024, 768, GL_RGBA);
     myGlitch_00.setup(&myFbo_00);
@@ -28,8 +30,7 @@ void ofApp::setup(){
     
     
     // cameras
-    camToView = 0;
-    cam[0].setPosition(40, 40, 500);
+    cam[0].setPosition(40, 40, 800);
     cam[1].setPosition(40, 300, 100);
     lookatIndex[1] = kNumTestNodes-1;
     
@@ -43,6 +44,39 @@ void ofApp::setup(){
     light.setAmbientColor(ofFloatColor(1.0, 1.0, 1.0, 1.0));
     light.setDiffuseColor(ofFloatColor(1.0, 1.0, 1.0));
     light.setSpecularColor(ofFloatColor(1.0, 1.0, 1.0));
+    
+    
+    // boxes
+    for (int s=0; s<numBoxes; s++) {
+        pos[s] = ofVec3f(ofRandom(500)-250, ofRandom(500)-250, ofRandom(500)-250);
+        box[s].setPosition(pos[s]);
+        box[s].rotate(ofRandom(360), 1, 1, 1);
+        box[s].set(ofRandom(100));
+        vel[s] = ofVec3f(ofRandom(-1,1), ofRandom(-1,1), ofRandom(-1,1));
+    }
+    
+    
+    // waves
+    width = 200;
+    height = 200;
+    for (int y = 0; y < height; y++){
+        for (int x = 0; x<width; x++){
+    //            mainMesh.addVertex(ofPoint(x,y,0));
+            mainMesh.addColor(ofFloatColor(1.0,0,0));
+        }
+    }
+    for (int y = 0; y<height-1; y++){
+        for (int x=0; x<width-1; x++){
+            mainMesh.addIndex(x+y*width);
+            mainMesh.addIndex((x+1)+y*width);
+            mainMesh.addIndex(x+(y+1)*width);
+            
+            mainMesh.addIndex((x+1)+y*width);
+            mainMesh.addIndex((x+1)+(y+1)*width);
+            mainMesh.addIndex(x+(y+1)*width);
+        }
+    }
+    extrusionAmount = 300.0;
     
     
     // *****    sounds  *****
@@ -73,7 +107,7 @@ void ofApp::update() {
     ofEnableAlphaBlending();
     
     
-    // *****    SCENE 1  *****
+    // *****    SCENE 1: BOX  *****
     
     myFbo_00.begin();
     
@@ -112,8 +146,8 @@ void ofApp::update() {
             zFlag = false;
         }
     }
-    
     cam[0].move(xAxis, yAxis, zAxis);
+    
     
     drawBoxes();
     myFbo_00.end();
@@ -121,11 +155,21 @@ void ofApp::update() {
     
     // *****    SCENE 2  *****
     
+    mainMesh.clearVertices();
+    for (int i = 0; i<width; i++){
+        for (int j=0; j<height; j++){
+            float x = sin(i*0.1 + ofGetElapsedTimef())*10.0;
+            float y = sin(j*0.15 + ofGetElapsedTimef())*10.0;
+            float z = x + y;
+            mainMesh.addVertex(ofVec3f(i - width/2, j - height/2, z));
+        }
+    }
+    
     myFbo_01.begin();
     
-    cam[1].move(-xAxis, -yAxis, -zAxis);
-    
+//    cam[1].move(-xAxis, -yAxis, -zAxis);
     drawWave();
+    
     myFbo_01.end();
     
     
@@ -142,14 +186,9 @@ void ofApp::update() {
 //--------------------------------------------------------------
 void ofApp::drawBoxes(){
     
-    float movementSpeed = .1;
-    float cloudSize = ofGetWidth() / 2;
-    float maxBoxSize = 100;
-    float spacing = 1;
-    int boxCount = 100;
-    
     ofEnableAlphaBlending();
     ofClear(255, 255, 255, 0);
+    ofBackground(0+col, 0+col, 0+col);
     
     for (int i=0; i<kNumCameras; i++) {
         if (lookatIndex[i] >= 0) {
@@ -157,38 +196,29 @@ void ofApp::drawBoxes(){
         }
     }
     
+    
     cam[0].begin();
-    
-    for(int i = 0; i < boxCount; i++) {
-        ofPushMatrix();
+    for(int i = 0; i < numBoxes; i++) {
         
-        float t = (ofGetElapsedTimef() + i * spacing) * movementSpeed;
-        ofVec3f pos(
-                    ofSignedNoise(t, 0, 0),
-                    ofSignedNoise(0, t, 0),
-                    ofSignedNoise(0, 0, t));
+        box[i].setPosition(pos[i]);
+        pos[i] += vel[i];
         
-        float boxSize = maxBoxSize * ofNoise(pos.x, pos.y, pos.z);
+        int temp = 50 + magnitudeL[i]*1000;
+        ofSetColor(ofColor::fromHsb(temp*.9, temp*.3, 60+temp));
         
-        pos *= cloudSize;
-        ofTranslate(pos);
-        ofRotateX(pos.x);
-        ofRotateY(pos.y);
-        ofRotateZ(pos.z);
+        ofVec3f gravity = ofVec3f(0,0,0) - pos[i];
+        if(gravity.length() > 300) {
+            gravity.normalize();
+            vel[i] += gravity/10;
+        }
+
+        pos[i].x += ofRandom(-magnitudeL[i]*10, magnitudeL[i]*10);
+        pos[i].y += ofRandom(-magnitudeL[i]*10, magnitudeL[i]*10);
+        pos[i].z += ofRandom(-magnitudeL[i]*10, magnitudeL[i]*10);
         
-        //        ofNoFill();
-        //        ofSetColor(255);
-        //        ofSetLineWidth(5);
-        //        ofDrawBox(boxSize * 1.1f);
+        box[i].draw();
         
-        ofFill();
-        ofSetColor(0, 200, 200);
-        //        ofSetColor(ofColor::fromHsb(sinf(t) * 128 + 128, 255, 255));
-        ofDrawBox(boxSize * 1.1f);
-        
-        ofPopMatrix();
     }
-    
     cam[0].end();
     
 }
@@ -200,12 +230,10 @@ void ofApp::drawWave(){
     
     ofEnableAlphaBlending();
     ofClear(255, 255, 255, 0);
-    ofSetColor(255);
-    s.set(100,16);
-    s.setPosition(300, 0, 40);
-    s.draw();
+    mainMesh.drawFaces();
     
     cam[1].end();
+    
 }
 
 //--------------------------------------------------------------
@@ -222,22 +250,6 @@ void ofApp::draw() {
         myFbo_01.draw(0,0);
     }
     
-    // *****    sounds  *****
-    
-    /*
-     //FFT解析した結果をもとに、グラフを生成
-     float w = (float)ofGetWidth()/ (float)fft_size / 2.0f;
-     for (int i = 0; i < fft_size; i++) {
-     
-     //塗りのアルファ値でFFT解析結果を表現
-     ofColor col;
-     col.setHsb(i * 255.0f / (float)fft_size, 255, 255, 31);
-     ofSetColor(col);
-     
-     ofCircle(ofGetWidth()/2 - w * i, ofGetHeight()/2, magnitudeL[i] * ofGetWidth()/100.0); //左
-     ofCircle(ofGetWidth()/2 + w * i, ofGetHeight()/2, magnitudeR[i] * ofGetWidth()/100.0); //右
-     }
-     */
 }
 
 //--------------------------------------------------------------
@@ -253,6 +265,11 @@ void ofApp::keyPressed(int key){
             break;
         case '2':
             switchScene = 1;
+            break;
+        case 'c':
+            if (col < 255) {
+                col += 5;
+            }
             break;
         default:
             break;
