@@ -6,7 +6,6 @@
 
 #define kNumTestNodes 4
 #define kNumCameras 2
-#define numBoxes 50
 
 class ofApp : public ofBaseApp {
 public:
@@ -26,7 +25,7 @@ public:
     ofFbo			myFbo_01;
     ofxPostGlitch	myGlitch_00;
     ofxPostGlitch	myGlitch_01;
-
+    
     int switchScene;
     int col;
     
@@ -39,22 +38,20 @@ public:
 
     ofLight light;
     
-    int width;
-    int height;
-    float extrusionAmount;
-    ofVboMesh mainMesh;
-    
-    ofBoxPrimitive box[numBoxes];
-    ofVec3f pos[numBoxes];
-    ofVec3f vel[numBoxes];
-    
+    static const int WIDTH = 200;
+    static const int HEIGHT = 200;
+    static const int NUM_PARTICLES = WIDTH * HEIGHT;
+    ofVbo vbo;
+    ofVec3f myVerts[NUM_PARTICLES];
+    ofFloatColor myColor[NUM_PARTICLES];
+
     
 // *****    sounds  *****
     //左右2chのFFTの入出力の値を確保
-    float *left, *right;
-    float *magnitudeL, *phaseL, *powerL;
-    float *magnitudeR, *phaseR, *powerR;
-    float avg_powerL, avg_powerR;
+    float *input;
+    float *magnitude, *phase, *power;
+//    float *magnitudeR, *phaseR, *powerR;
+    float avg_power;
     //バッファーサイズとFFTサイズ
     int buffer_size;
     int fft_size;

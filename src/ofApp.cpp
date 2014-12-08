@@ -7,9 +7,8 @@ void ofApp::setup(){
     ofSetVerticalSync(true);
     ofEnableDepthTest();
     
-    ofBackground(0);
+    ofBackground(0, 0, 0);
     
-    //buffers
     myFbo_00.allocate(1024, 768, GL_RGBA);
     myFbo_01.allocate(1024, 768, GL_RGBA);
     myGlitch_00.setup(&myFbo_00);
@@ -31,7 +30,7 @@ void ofApp::setup(){
     
     // cameras
     cam[0].setPosition(40, 40, 800);
-    cam[1].setPosition(40, 300, 100);
+    cam[1].setPosition(40, 100, -100);
     lookatIndex[1] = kNumTestNodes-1;
     
     
@@ -45,39 +44,15 @@ void ofApp::setup(){
     light.setDiffuseColor(ofFloatColor(1.0, 1.0, 1.0));
     light.setSpecularColor(ofFloatColor(1.0, 1.0, 1.0));
     
-    
-    // boxes
-    for (int s=0; s<numBoxes; s++) {
-        pos[s] = ofVec3f(ofRandom(500)-250, ofRandom(500)-250, ofRandom(500)-250);
-        box[s].setPosition(pos[s]);
-        box[s].rotate(ofRandom(360), 1, 1, 1);
-        box[s].set(ofRandom(100));
-        vel[s] = ofVec3f(ofRandom(-1,1), ofRandom(-1,1), ofRandom(-1,1));
-    }
-    
-    
-    // waves
-    width = 200;
-    height = 200;
-    for (int y = 0; y < height; y++){
-        for (int x = 0; x<width; x++){
-    //            mainMesh.addVertex(ofPoint(x,y,0));
-            mainMesh.addColor(ofFloatColor(1.0,0,0));
+    ofEnableBlendMode(OF_BLENDMODE_ADD);
+    for (int i = 0; i < WIDTH; i++) {
+        for (int j = 0; j < HEIGHT; j++) {
+            myVerts[j * WIDTH + i].set(i - WIDTH/2, j - HEIGHT/2, 0);
+            myColor[j * WIDTH + i].set(0.5, 0.8, 1.0, 1.0);
         }
     }
-    for (int y = 0; y<height-1; y++){
-        for (int x=0; x<width-1; x++){
-            mainMesh.addIndex(x+y*width);
-            mainMesh.addIndex((x+1)+y*width);
-            mainMesh.addIndex(x+(y+1)*width);
-            
-            mainMesh.addIndex((x+1)+y*width);
-            mainMesh.addIndex((x+1)+(y+1)*width);
-            mainMesh.addIndex(x+(y+1)*width);
-        }
-    }
-    extrusionAmount = 300.0;
-    
+    vbo.setVertexData(myVerts, NUM_PARTICLES, GL_DYNAMIC_DRAW);
+    vbo.setColorData(myColor, NUM_PARTICLES, GL_DYNAMIC_DRAW);
     
     // *****    sounds  *****
     
@@ -86,15 +61,15 @@ void ofApp::setup(){
     buffer_size = fft_size * 2;
     
     //FFTサイズにあわせて出力結果の配列を左右2ch分準備
-    left = new float[buffer_size];
-    magnitudeL = new float[fft_size];
-    phaseL = new float[fft_size];
-    powerL = new float[fft_size];
+    input = new float[buffer_size];
+    magnitude = new float[fft_size];
+    phase = new float[fft_size];
+    power = new float[fft_size];
     
-    right = new float[buffer_size];
-    magnitudeR = new float[fft_size];
-    phaseR = new float[fft_size];
-    powerR = new float[fft_size];
+//    right = new float[buffer_size];
+//    magnitudeR = new float[fft_size];
+//    phaseR = new float[fft_size];
+//    powerR = new float[fft_size];
     
     //オーディオストリームの設定
     ofSoundStreamSetup(0, 2, this, 44100, buffer_size, 4);
@@ -107,18 +82,18 @@ void ofApp::update() {
     ofEnableAlphaBlending();
     
     
-    // *****    SCENE 1: BOX  *****
+    // *****    SCENE 1  *****
     
     myFbo_00.begin();
     
     if (xFlag == false) {
-        xAxis = -10;
-        if (cam[0].getX() < -300) {
+        xAxis = -ofRandom(10);
+        if (cam[0].getX() < -500) {
             xFlag = true;
         }
     }else if (xFlag == true) {
-        xAxis = 10;
-        if (cam[0].getX() > 300) {
+        xAxis = ofRandom(10);
+        if (cam[0].getX() > 500) {
             xFlag = false;
         }
     }
@@ -135,7 +110,7 @@ void ofApp::update() {
         }
     }
     
-    if (zFlag == false) {
+    if (zFlag == false && (cam[0].getX() > 400 || cam[0].getX() < -400)) {
         zAxis = -10;
         if (cam[0].getZ() < -500) {
             zFlag = true;
@@ -146,8 +121,8 @@ void ofApp::update() {
             zFlag = false;
         }
     }
-    cam[0].move(xAxis, yAxis, zAxis);
     
+    cam[0].move(xAxis, yAxis, zAxis);
     
     drawBoxes();
     myFbo_00.end();
@@ -155,40 +130,45 @@ void ofApp::update() {
     
     // *****    SCENE 2  *****
     
-    mainMesh.clearVertices();
-    for (int i = 0; i<width; i++){
-        for (int j=0; j<height; j++){
-            float x = sin(i*0.1 + ofGetElapsedTimef())*10.0;
-            float y = sin(j*0.15 + ofGetElapsedTimef())*10.0;
-            float z = x + y;
-            mainMesh.addVertex(ofVec3f(i - width/2, j - height/2, z));
+    for (int i = 0; i < WIDTH; i++) {
+        for (int j = 0; j < HEIGHT; j++) {
+            float x = sin(i * 0.1 + ofGetElapsedTimef()) * 10.0;
+            float y = sin(j * 0.15 + ofGetElapsedTimef()) * 10.0;
+            float z = x+y+magnitude[j]*100;
+            myVerts[j * WIDTH + i] = ofVec3f(i - WIDTH/2, j - HEIGHT/2, z);
         }
     }
+    vbo.updateVertexData(myVerts, NUM_PARTICLES);
     
     myFbo_01.begin();
     
 //    cam[1].move(-xAxis, -yAxis, -zAxis);
-    drawWave();
     
+    drawWave();
     myFbo_01.end();
     
     
     // *****    sounds  *****
     
     //オーディオ入力をFFT解析 (左右2ch)
-    avg_powerL = 0.0;
-    avg_powerR = 0.0;
-    myfft.powerSpectrum(0, fft_size, left, buffer_size,	magnitudeL, phaseL, powerL, &avg_powerL);
-    myfft.powerSpectrum(0, fft_size, right, buffer_size, magnitudeR, phaseR, powerR, &avg_powerR);
+    avg_power = 0.0;
+//    avg_powerR = 0.0;
+    myfft.powerSpectrum(0, fft_size, input, buffer_size, magnitude, phase, power, &avg_power);
+//    myfft.powerSpectrum(0, fft_size, right, buffer_size, magnitudeR, phaseR, powerR, &avg_powerR);
     
 }
 
 //--------------------------------------------------------------
 void ofApp::drawBoxes(){
     
+    float movementSpeed = .3;
+    float cloudSize = ofGetWidth()*2;
+    float maxBoxSize = 30;
+    float spacing = 50;
+    int boxCount = 30;
+    
     ofEnableAlphaBlending();
     ofClear(255, 255, 255, 0);
-    ofBackground(0+col, 0+col, 0+col);
     
     for (int i=0; i<kNumCameras; i++) {
         if (lookatIndex[i] >= 0) {
@@ -196,28 +176,30 @@ void ofApp::drawBoxes(){
         }
     }
     
-    
     cam[0].begin();
-    for(int i = 0; i < numBoxes; i++) {
-        
-        box[i].setPosition(pos[i]);
-        pos[i] += vel[i];
-        
-        int temp = 50 + magnitudeL[i]*1000;
-        ofSetColor(ofColor::fromHsb(temp*.9, temp*.3, 60+temp));
-        
-        ofVec3f gravity = ofVec3f(0,0,0) - pos[i];
-        if(gravity.length() > 300) {
-            gravity.normalize();
-            vel[i] += gravity/10;
-        }
+    
+    for(int i = 0; i < boxCount; i++) {
+        ofPushMatrix();
+        float t = (ofGetElapsedTimef() + i * spacing) * movementSpeed;
+        ofVec3f pos(
+                    ofSignedNoise(t, 0, 0),
+                    ofSignedNoise(0, t, 0),
+                    ofSignedNoise(0, 0, t));
 
-        pos[i].x += ofRandom(-magnitudeL[i]*10, magnitudeL[i]*10);
-        pos[i].y += ofRandom(-magnitudeL[i]*10, magnitudeL[i]*10);
-        pos[i].z += ofRandom(-magnitudeL[i]*10, magnitudeL[i]*10);
+        float boxSize = maxBoxSize + magnitude[i]*500;
         
-        box[i].draw();
+        pos *= cloudSize;
+        ofTranslate(pos);
+        ofRotateX(pos.x);
+        ofRotateY(pos.y);
+        ofRotateZ(pos.z);
         
+        ofFill();
+        float temp = 50 + magnitude[i]*1000;
+        ofSetColor(ofColor::fromHsb(temp*.9, temp*.3, 60+temp));
+        ofDrawBox(boxSize + magnitude[i]*10);
+        
+        ofPopMatrix();
     }
     cam[0].end();
     
@@ -226,14 +208,15 @@ void ofApp::drawBoxes(){
 //--------------------------------------------------------------
 void ofApp::drawWave(){
     
-    cam[1].begin();
     
     ofEnableAlphaBlending();
     ofClear(255, 255, 255, 0);
-    mainMesh.drawFaces();
+
     
+    cam[1].begin();
+    ofRotateX(90);
+    vbo.draw(GL_POINTS, 0, NUM_PARTICLES);
     cam[1].end();
-    
 }
 
 //--------------------------------------------------------------
@@ -250,6 +233,22 @@ void ofApp::draw() {
         myFbo_01.draw(0,0);
     }
     
+    // *****    sounds  *****
+    
+    /*
+     //FFT解析した結果をもとに、グラフを生成
+     float w = (float)ofGetWidth()/ (float)fft_size / 2.0f;
+     for (int i = 0; i < fft_size; i++) {
+     
+     //塗りのアルファ値でFFT解析結果を表現
+     ofColor col;
+     col.setHsb(i * 255.0f / (float)fft_size, 255, 255, 31);
+     ofSetColor(col);
+     
+     ofCircle(ofGetWidth()/2 - w * i, ofGetHeight()/2, magnitudeL[i] * ofGetWidth()/100.0); //左
+     ofCircle(ofGetWidth()/2 + w * i, ofGetHeight()/2, magnitudeR[i] * ofGetWidth()/100.0); //右
+     }
+     */
 }
 
 //--------------------------------------------------------------
@@ -265,11 +264,6 @@ void ofApp::keyPressed(int key){
             break;
         case '2':
             switchScene = 1;
-            break;
-        case 'c':
-            if (col < 255) {
-                col += 5;
-            }
             break;
         default:
             break;
@@ -288,11 +282,8 @@ void ofApp::keyReleased(int key){
 }
 
 //--------------------------------------------------------------
-void ofApp::audioIn(float* input, int bufferSize, int nChannels) {
+void ofApp::audioIn(float* _input, int bufferSize, int nChannels) {
     
-    //入力信号(input)を左右2ch(left, right)に分ける
-    for (int i = 0; i < bufferSize; i++){
-        left[i]		= input[i*2];
-        right[i]	= input[i*2+1];
-    }
+    input = _input;
+    
 }
