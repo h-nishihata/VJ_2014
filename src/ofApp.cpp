@@ -3,25 +3,16 @@
 //--------------------------------------------------------------
 void ofApp::setup(){
     
-    ofSetFrameRate(60);
     ofSetVerticalSync(true);
+    ofSetFrameRate(60);
     ofEnableDepthTest();
     
-    ofBackground(0, 0, 0);
+    myFbo.allocate(1024, 768, GL_RGBA);
+    myGlitch.setup(&myFbo);
     
-    myFbo_00.allocate(1024, 768, GL_RGBA);
-    myFbo_01.allocate(1024, 768, GL_RGBA);
-    myGlitch_00.setup(&myFbo_00);
-    myGlitch_01.setup(&myFbo_01);
-    
-    myFbo_00.begin();
+    myFbo.begin();
     ofClear(255, 255, 255, 0);
-    myFbo_00.end();
-    
-    myFbo_01.begin();
-    ofClear(255, 255, 255, 0);
-    myFbo_01.end();
-    
+    myFbo.end();
     
     // nodes
     testNodes[0].setOrientation(ofVec3f(30,0,40));
@@ -40,21 +31,12 @@ void ofApp::setup(){
     light.setPosition(50, 80, 150);
     light.lookAt(testNodes[0]);
     
-    light.setAmbientColor(ofFloatColor(1.0, 1.0, 1.0, 1.0));
-    light.setDiffuseColor(ofFloatColor(1.0, 1.0, 1.0));
+    light.setAmbientColor(ofFloatColor(1.0, 0.6, 0.9, 1.0));
+    light.setDiffuseColor(ofFloatColor(1.0, 0.6, 0.9));
     light.setSpecularColor(ofFloatColor(1.0, 1.0, 1.0));
     
-    ofEnableBlendMode(OF_BLENDMODE_ADD);
-    for (int i = 0; i < WIDTH; i++) {
-        for (int j = 0; j < HEIGHT; j++) {
-            myVerts[j * WIDTH + i].set(i - WIDTH/2, j - HEIGHT/2, 0);
-            myColor[j * WIDTH + i].set(0.5, 0.8, 1.0, 1.0);
-        }
-    }
-    vbo.setVertexData(myVerts, NUM_PARTICLES, GL_DYNAMIC_DRAW);
-    vbo.setColorData(myColor, NUM_PARTICLES, GL_DYNAMIC_DRAW);
     
-    // *****    sounds  *****
+// *****    sounds  *****
     
     //FFTのサイズとバッファサイズを設定
     fft_size = 512;
@@ -66,10 +48,10 @@ void ofApp::setup(){
     phase = new float[fft_size];
     power = new float[fft_size];
     
-//    right = new float[buffer_size];
-//    magnitudeR = new float[fft_size];
-//    phaseR = new float[fft_size];
-//    powerR = new float[fft_size];
+    //    right = new float[buffer_size];
+    //    magnitudeR = new float[fft_size];
+    //    phaseR = new float[fft_size];
+    //    powerR = new float[fft_size];
     
     //オーディオストリームの設定
     ofSoundStreamSetup(0, 2, this, 44100, buffer_size, 4);
@@ -77,14 +59,11 @@ void ofApp::setup(){
 }
 
 //--------------------------------------------------------------
-void ofApp::update() {
+void ofApp::update(){
     
     ofEnableAlphaBlending();
     
-    
-    // *****    SCENE 1  *****
-    
-    myFbo_00.begin();
+    myFbo.begin();
     
     if (xFlag == false) {
         xAxis = -ofRandom(10);
@@ -124,51 +103,43 @@ void ofApp::update() {
     
     cam[0].move(xAxis, yAxis, zAxis);
     
-    drawBoxes();
-    myFbo_00.end();
+    drawFboTest();
+    myFbo.end();
+
     
-    
-    // *****    SCENE 2  *****
-    
-    for (int i = 0; i < WIDTH; i++) {
-        for (int j = 0; j < HEIGHT; j++) {
-            float x = sin(i * 0.1 + ofGetElapsedTimef()) * 10.0;
-            float y = sin(j * 0.15 + ofGetElapsedTimef()) * 10.0;
-            float z = x+y+magnitude[j]*100;
-            myVerts[j * WIDTH + i] = ofVec3f(i - WIDTH/2, j - HEIGHT/2, z);
-        }
-    }
-    vbo.updateVertexData(myVerts, NUM_PARTICLES);
-    
-    myFbo_01.begin();
-    
-//    cam[1].move(-xAxis, -yAxis, -zAxis);
-    
-    drawWave();
-    myFbo_01.end();
-    
-    
-    // *****    sounds  *****
-    
-    //オーディオ入力をFFT解析 (左右2ch)
+// *****    sounds  *****
+
     avg_power = 0.0;
-//    avg_powerR = 0.0;
     myfft.powerSpectrum(0, fft_size, input, buffer_size, magnitude, phase, power, &avg_power);
-//    myfft.powerSpectrum(0, fft_size, right, buffer_size, magnitudeR, phaseR, powerR, &avg_powerR);
     
 }
 
 //--------------------------------------------------------------
-void ofApp::drawBoxes(){
+void ofApp::drawFboTest(){
     
     float movementSpeed = .3;
-    float cloudSize = ofGetWidth()*2;
-    float maxBoxSize = 30;
+    float cloudSize = ofGetWidth();
+    float maxBoxSize = 50;
     float spacing = 50;
     int boxCount = 30;
     
+    
     ofEnableAlphaBlending();
     ofClear(255, 255, 255, 0);
+    /*
+    fadeAmnt = 40;
+    if(ofGetKeyPressed('z')){
+        fadeAmnt = 1;
+    }else if(ofGetKeyPressed('x')){
+        fadeAmnt = 5;
+    }else if(ofGetKeyPressed('c')){
+        fadeAmnt = 15;
+    }
+    ofFill();
+    ofSetColor(255,255,255, fadeAmnt);
+    ofRect(0,0,ofGetWidth(),ofGetHeight());
+    */
+    
     
     for (int i=0; i<kNumCameras; i++) {
         if (lookatIndex[i] >= 0) {
@@ -177,6 +148,28 @@ void ofApp::drawBoxes(){
     }
     
     cam[0].begin();
+    for(int i = -3; i < 3; i++) {
+        ofPushMatrix();
+        
+        ofTranslate(i*300, 0, 0);
+        ofSetColor(0,255,200);
+        ofDrawGridPlane(1000);
+        
+        ofPopMatrix();
+        
+        
+        ofPushMatrix();
+        
+        ofTranslate(0, i*300, 0);
+        ofRotate(90, 0, 0, -1);
+        ofSetColor(0,255,200);
+        ofDrawGridPlane(1000);
+        
+        ofRotate(90, 0, 0, -1);
+        
+        ofPopMatrix();
+    }
+    
     
     for(int i = 0; i < boxCount; i++) {
         ofPushMatrix();
@@ -185,105 +178,134 @@ void ofApp::drawBoxes(){
                     ofSignedNoise(t, 0, 0),
                     ofSignedNoise(0, t, 0),
                     ofSignedNoise(0, 0, t));
-
-        float boxSize = maxBoxSize + magnitude[i]*500;
+        
+        float boxSize = maxBoxSize + magnitude[i]*5;
         
         pos *= cloudSize;
         ofTranslate(pos);
-        ofRotateX(pos.x);
-        ofRotateY(pos.y);
-        ofRotateZ(pos.z);
+        ofRotateX(pos.x*.5);
+        ofRotateY(pos.y*.5);
+        ofRotateZ(pos.z*.5);
         
         ofFill();
         float temp = 50 + magnitude[i]*1000;
-        ofSetColor(ofColor::fromHsb(temp*.9, temp*.3, 60+temp));
-        ofDrawBox(boxSize + magnitude[i]*10);
+        ofSetColor(255);
+        ofDrawBox(boxSize);
         
         ofPopMatrix();
     }
+
     cam[0].end();
     
+    
+// *****    sounds  *****
+    
+    //FFT解析した結果をもとに、グラフを生成
+    float w = (float)ofGetWidth()/ (float)fft_size / 2.0f;
+    for (int i = 0; i < fft_size; i++) {
+        
+        //塗りのアルファ値でFFT解析結果を表現
+        ofColor col;
+        col.setHsb(i * 255.0f / (float)fft_size, 255, 255, 255);
+        ofSetColor(col);
+        float h = magnitude[i] * ofGetHeight();
+        ofRect(ofGetWidth()/2 - w * i, ofGetHeight()/2, w, h);
+        ofRect(ofGetWidth()/2 + w * i, ofGetHeight()/2, w, -h);
+    }
+    
 }
 
 //--------------------------------------------------------------
-void ofApp::drawWave(){
+void ofApp::draw(){
     
-    
-    ofEnableAlphaBlending();
-    ofClear(255, 255, 255, 0);
+    myGlitch.generateFx();
+    ofSetColor(255);
+    myFbo.draw(0, 0);
 
-    
-    cam[1].begin();
-    ofRotateX(90);
-    vbo.draw(GL_POINTS, 0, NUM_PARTICLES);
-    cam[1].end();
-}
-
-//--------------------------------------------------------------
-void ofApp::draw() {
-    
-    myGlitch_00.generateFx();
-    myGlitch_01.generateFx();
-    ofSetColor(255, 255, 255);
-    
-    if (switchScene == 0) {
-        myFbo_00.draw(0, 0);
-    }
-    else if(switchScene == 1){
-        myFbo_01.draw(0,0);
-    }
-    
-    // *****    sounds  *****
-    
-    /*
-     //FFT解析した結果をもとに、グラフを生成
-     float w = (float)ofGetWidth()/ (float)fft_size / 2.0f;
-     for (int i = 0; i < fft_size; i++) {
-     
-     //塗りのアルファ値でFFT解析結果を表現
-     ofColor col;
-     col.setHsb(i * 255.0f / (float)fft_size, 255, 255, 31);
-     ofSetColor(col);
-     
-     ofCircle(ofGetWidth()/2 - w * i, ofGetHeight()/2, magnitudeL[i] * ofGetWidth()/100.0); //左
-     ofCircle(ofGetWidth()/2 + w * i, ofGetHeight()/2, magnitudeR[i] * ofGetWidth()/100.0); //右
-     }
-     */
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
     
-    switch (key) {
-        case 'e':
-            myGlitch_00.setFx(OFXPOSTGLITCH_SLITSCAN, true);
-            myGlitch_01.setFx(OFXPOSTGLITCH_TWIST, true);
-            break;
-        case '1':
-            switchScene = 0;
-            break;
-        case '2':
-            switchScene = 1;
-            break;
-        default:
-            break;
-    }
-    
+    if (key == '1') myGlitch.setFx(OFXPOSTGLITCH_CONVERGENCE	, true);
+    if (key == '2') myGlitch.setFx(OFXPOSTGLITCH_GLOW			, true);
+    if (key == '3') myGlitch.setFx(OFXPOSTGLITCH_SHAKER			, true);
+    if (key == '4') myGlitch.setFx(OFXPOSTGLITCH_CUTSLIDER		, true);
+    if (key == '5') myGlitch.setFx(OFXPOSTGLITCH_TWIST			, true);
+    if (key == '6')myGlitch.setFx(OFXPOSTGLITCH_INVERT			, true);
+    if (key == '7') myGlitch.setFx(OFXPOSTGLITCH_NOISE			, true);
+    if (key == '8') myGlitch.setFx(OFXPOSTGLITCH_SLITSCAN		, true);
+    if (key == '9') myGlitch.setFx(OFXPOSTGLITCH_SWELL			, true);
+    if (key == 'q') myGlitch.setFx(OFXPOSTGLITCH_CR_HIGHCONTRAST, true);
+    if (key == 'w') myGlitch.setFx(OFXPOSTGLITCH_CR_BLUERAISE	, true);
+    if (key == 'e') myGlitch.setFx(OFXPOSTGLITCH_CR_REDRAISE	, true);
+    if (key == 'r') myGlitch.setFx(OFXPOSTGLITCH_CR_GREENRAISE	, true);
+    if (key == 't') myGlitch.setFx(OFXPOSTGLITCH_CR_BLUEINVERT	, true);
+    if (key == 'y') myGlitch.setFx(OFXPOSTGLITCH_CR_REDINVERT	, true);
+    if (key == 'u') myGlitch.setFx(OFXPOSTGLITCH_CR_GREENINVERT	, true);
+
+
 }
 
 //--------------------------------------------------------------
 void ofApp::keyReleased(int key){
     
-    if (key == 'e'){
-        myGlitch_00.setFx(OFXPOSTGLITCH_SLITSCAN, false);
-        myGlitch_01.setFx(OFXPOSTGLITCH_TWIST, false);
-    }
+    if (key == '1') myGlitch.setFx(OFXPOSTGLITCH_CONVERGENCE	, false);
+    if (key == '2') myGlitch.setFx(OFXPOSTGLITCH_GLOW			, false);
+    if (key == '3') myGlitch.setFx(OFXPOSTGLITCH_SHAKER			, false);
+    if (key == '4') myGlitch.setFx(OFXPOSTGLITCH_CUTSLIDER		, false);
+    if (key == '5') myGlitch.setFx(OFXPOSTGLITCH_TWIST			, false);
+    if (key == '6') myGlitch.setFx(OFXPOSTGLITCH_INVERT			, false);
+    if (key == '7') myGlitch.setFx(OFXPOSTGLITCH_NOISE			, false);
+    if (key == '8') myGlitch.setFx(OFXPOSTGLITCH_SLITSCAN		, false);
+    if (key == '9') myGlitch.setFx(OFXPOSTGLITCH_SWELL			, false);
+    if (key == 'q') myGlitch.setFx(OFXPOSTGLITCH_CR_HIGHCONTRAST, false);
+    if (key == 'w') myGlitch.setFx(OFXPOSTGLITCH_CR_BLUERAISE	, false);
+    if (key == 'e') myGlitch.setFx(OFXPOSTGLITCH_CR_REDRAISE	, false);
+    if (key == 'r') myGlitch.setFx(OFXPOSTGLITCH_CR_GREENRAISE	, false);
+    if (key == 't') myGlitch.setFx(OFXPOSTGLITCH_CR_BLUEINVERT	, false);
+    if (key == 'y') myGlitch.setFx(OFXPOSTGLITCH_CR_REDINVERT	, false);
+    if (key == 'u') myGlitch.setFx(OFXPOSTGLITCH_CR_GREENINVERT	, false);
     
 }
-
 //--------------------------------------------------------------
 void ofApp::audioIn(float* _input, int bufferSize, int nChannels) {
     
     input = _input;
     
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseMoved(int x, int y ){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseDragged(int x, int y, int button){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mousePressed(int x, int y, int button){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseReleased(int x, int y, int button){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::windowResized(int w, int h){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::gotMessage(ofMessage msg){
+
+}
+
+//--------------------------------------------------------------
+void ofApp::dragEvent(ofDragInfo dragInfo){ 
+
 }

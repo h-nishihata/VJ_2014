@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:vjTest.xcodeproj">
+      location = "self:videoJockey.xcodeproj">
    </FileRef>
 </Workspace>
