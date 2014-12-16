@@ -25,24 +25,39 @@ class ofApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 
         void drawFboTest();
+        void drawFboTest_();
         void audioIn(float* input, int bufferSize, int nChannels);
 
     
         ofFbo myFbo;
+        ofFbo myFbo_;
         int fadeAmnt;
-
-        
+        int switchScene;
+    
         ofNode testNodes[kNumTestNodes];
         int lookatIndex[kNumCameras];
 
         ofCamera cam[kNumCameras];
-        float xAxis, yAxis, zAxis;
+
+        float camPosX =  30;
+        float camPosY =  0;
+        float camPosZ =  40;
         bool xFlag, yFlag, zFlag;
 
-        
         ofLight light;
-        ofxPostGlitch	myGlitch;
+        bool rFlag, gFlag, bFlag = true;
+        int r,g,b;
     
+        ofBoxPrimitive box[512];
+        ofVboMesh	mVboBox;
+        int arc, revArc;
+        bool triggerArc;
+    
+        ofxPostGlitch	myGlitch;
+        ofxPostGlitch	myGlitch_;
+    
+        bool isFinished;
+
     
 // *****    sounds  *****
     
