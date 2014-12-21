@@ -4,8 +4,8 @@
 #include "ofxPostGlitch.h"
 #include "fft.h"
 
-#define kNumTestNodes 2
-#define kNumCameras 2
+#define kNumTestNodes 3
+#define kNumCameras 3
 
 class ofApp : public ofBaseApp{
 
@@ -24,37 +24,50 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 
-        void drawFboTest();
-        void drawFboTest_();
+        void drawFboTest_00();
+        void drawFboTest_01();
+        void drawFboTest_02();
         void audioIn(float* input, int bufferSize, int nChannels);
 
-    
-        ofFbo myFbo;
-        ofFbo myFbo_;
+//  buffers
+        ofFbo myFbo_00;
+        ofFbo myFbo_01;
+        ofFbo myFbo_02;
         int fadeAmnt;
         int switchScene;
-    
+//  nodes
         ofNode testNodes[kNumTestNodes];
         int lookatIndex[kNumCameras];
-
+//  cameras
         ofCamera cam[kNumCameras];
 
         float camPosX =  30;
         float camPosY =  0;
         float camPosZ =  40;
         bool xFlag, yFlag, zFlag;
-
+//  light
         ofLight light;
         bool rFlag, gFlag, bFlag = true;
         int r,g,b;
-    
+//  boxes
         ofBoxPrimitive box[512];
+        ofBoxPrimitive bx;
         ofVboMesh	mVboBox;
+//  arcs & circles
         int arc, revArc;
         bool triggerArc;
-    
-        ofxPostGlitch	myGlitch;
-        ofxPostGlitch	myGlitch_;
+        float x,y;
+        int rad = 300;
+        bool triggerCircle;
+//  strokes
+        ofVec3f previous, current;
+        deque<ofVec3f> pathVertices;
+        ofMesh pathLines;
+        int thickness = 10;
+//  glitch
+        ofxPostGlitch	myGlitch_00;
+        ofxPostGlitch	myGlitch_01;
+        ofxPostGlitch	myGlitch_02;
     
         bool isFinished;
 
