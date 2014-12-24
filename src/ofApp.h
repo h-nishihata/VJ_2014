@@ -47,10 +47,10 @@ class ofApp : public ofBaseApp{
         bool xFlag, yFlag, zFlag;
 //  light
         ofLight light;
-        bool rFlag, gFlag, bFlag = true;
         int r,g,b;
+        bool rFlag, gFlag, bFlag;
 //  boxes
-        ofBoxPrimitive box[512];
+        ofBoxPrimitive box;
         ofBoxPrimitive bx;
         ofVboMesh	mVboBox;
 //  arcs & circles
@@ -69,6 +69,7 @@ class ofApp : public ofBaseApp{
         ofxPostGlitch	myGlitch_01;
         ofxPostGlitch	myGlitch_02;
     
+        bool flick;
         bool isFinished;
 
     

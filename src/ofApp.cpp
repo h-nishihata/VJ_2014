@@ -45,8 +45,8 @@ void ofApp::setup(){
     light.setPosition(50, 80, 150);
     light.lookAt(testNodes[0]);
     
-    light.setAmbientColor(ofColor(255, 100, 180, 255));
-    light.setDiffuseColor(ofColor(255, 100, 190));
+    light.setAmbientColor(ofColor(r, g, b, 255));
+    light.setDiffuseColor(ofColor(r, g, b));
     light.setSpecularColor(ofColor(255, 255, 255));
 
     
@@ -119,56 +119,69 @@ void ofApp::update(){
         cam[n].setPosition(camPosX, camPosY, camPosZ);
     }
 
-    
-    light.setAmbientColor(ofColor(r, g, b, 255));
-    light.setDiffuseColor(ofColor(r, g, b));
-
     if (ofGetKeyPressed('z')){
+        flick = false;
+        isFinished = false;
         if (rFlag == false) {
-            r --;
             if (r <= 0) {
                 rFlag = true;
+            }else{
+                r --;
             }
         }else if (rFlag == true) {
-            r ++;
             if (r >= 255) {
                 rFlag = false;
+            }else{
+                r ++;
             }
         }
     }
-    
     if (ofGetKeyPressed('x')) {
+        flick = false;
+        isFinished = false;
         if (gFlag == false) {
-            g --;
             if (g <= 0) {
                 gFlag = true;
+            }else{
+                g --;
             }
         }else if (gFlag == true) {
-            g ++;
             if (g >= 255) {
                 gFlag = false;
+            }else{
+                g ++;
             }
         }
     }
-    
     if (ofGetKeyPressed('c')){
+        flick = false;
+        isFinished = false;
         if (bFlag == false) {
-            b --;
             if (b <= 0) {
                 bFlag = true;
+            }else{
+                b --;
             }
         }else if (bFlag == true) {
-            b ++;
             if (b >= 255) {
                 bFlag = false;
+            }else{
+                b ++;
             }
         }
+    }
+    if (flick == true) {
+        if (r < 255) r++;
+        if (g < 255) g++;
+        if (b < 255) b++;
     }
     if (isFinished == true) {
         if (r > 0) r--;
         if (g > 0) g--;
         if (b > 0) b--;
     }
+    light.setAmbientColor(ofColor(r, g, b, 255));
+    light.setDiffuseColor(ofColor(r, g, b));
     
 
 //  arcs
@@ -186,7 +199,7 @@ void ofApp::update(){
     }
     
 //  strokes
-    cam[2].setPosition(current.x, current.y+80, current.z-80);
+    cam[2].setPosition(current.x, current.y+50, current.z-80);
     previous = current;
     
     float t = (2 + ofGetElapsedTimef()) * .2;
@@ -304,7 +317,6 @@ void ofApp::drawFboTest_00(){
         ofFill();
         ofSetColor(255);
         ofDrawBox(boxSize);
-        
         ofPopMatrix();
     }
 
@@ -317,14 +329,14 @@ void ofApp::drawFboTest_00(){
     for (int i = 0; i < fft_size; i++) {
         
         //塗りのアルファ値でFFT解析結果を表現
-        ofColor col;
-        col.setHsb(i * 255.0f / (float)fft_size, 255, 255, 255);
-        ofSetColor(col);
+//        ofColor col;
+//        col.setHsb(i * 255.0f / (float)fft_size, 255, 255, 255);
+//        ofSetColor(col);
         float h = magnitude[i] * ofGetHeight();
         ofRect(ofGetWidth()/2 - w * i, ofGetHeight()/2, w, h);
         ofRect(ofGetWidth()/2 + w * i, ofGetHeight()/2, w, -h);
     }
-    
+
 }
 
 //--------------------------------------------------------------
@@ -332,15 +344,20 @@ void ofApp::drawFboTest_01(){
 
     ofEnableAlphaBlending();
     ofClear(255, 255, 255, 0);
-    ofBackgroundGradient(ofColor(85, 78, 68), ofColor(0,0,255), OF_GRADIENT_LINEAR);
+    ofBackgroundGradient(ofColor(85, 78, 68), ofColor(190,50,200), OF_GRADIENT_LINEAR);
     
     cam[1].begin();
+    ofSetLineWidth(1);
     ofSetColor(255);
     for (int i = 0; i < 22; i++) {
         for (int j = 0; j < 22; j++) {
-            box[j].set(20, magnitude[i]*500, 20);
-            box[j].setPosition(i*80, 0, j*80);
-            box[j].drawWireframe();
+            box.set(20, magnitude[j*22+i]*500, 20);
+            box.setPosition(i*80, 0, j*80);
+            if (xFlag == true) {
+                box.draw();
+            }else{
+                box.drawWireframe();
+            }
         }
     }
     cam[1].end();
@@ -413,22 +430,15 @@ void ofApp::drawFboTest_02(){
 
     ofEnableAlphaBlending();
     ofClear(255, 255, 255, 0);
-    ofBackgroundGradient(ofColor(85, 78, 68), ofColor(0,0,255), OF_GRADIENT_LINEAR);
+    ofBackgroundGradient(ofColor(85, 78, 68), ofColor(190,50,200), OF_GRADIENT_LINEAR);
     
     cam[2].begin();
-    
-        //    ofRotateX(15);
-            
-            
-        //    ofSetColor(0);
-//            ofDrawGrid(500, 10, false, false, true, false);
-    
 
         ofSetLineWidth(2);
         ofSetColor(255);
         pathLines.draw();
-        
 
+    
         ofLine(current.x, current.y, current.z, current.x, -500, current.z);
     
     
@@ -439,8 +449,41 @@ void ofApp::drawFboTest_02(){
         ofRotateY(current.y*.5);
         ofRotateZ(current.z*.5);
         bx.set(10+magnitude[20]*80);
-        bx.drawWireframe();
-   
+        if (xFlag == true) {
+            bx.draw();
+        }else{
+            bx.drawWireframe();
+        }
+    
+    ofNoFill();
+    ofSetLineWidth(8);
+    ofRect(-15, -15, 30, 30);
+    ofRotateZ(10);
+    ofSetLineWidth(5);
+    ofRect(-25, -25, 50, 50);
+    
+    if (r > 100 && g > 100 && b > 100) {
+        for(int i = 0; i < 100; i++) {
+            ofPushMatrix();
+            float t = (ofGetElapsedTimef() + i * 50) * .5;
+            ofVec3f pos(
+                        ofSignedNoise(t, 0, 0),
+                        ofSignedNoise(0, t, 0),
+                        ofSignedNoise(0, 0, t));
+            
+            pos *= ofGetWidth();
+            ofTranslate(pos);
+            ofRotateX(pos.x*.8);
+            ofRotateY(pos.y*.8);
+            ofRotateZ(pos.z*.8);
+            
+            ofFill();
+            ofSetColor(255);
+            ofTriangle(0, 0, 0, 50, 50, 50);
+            ofPopMatrix();
+        }
+    }
+
     cam[2].end();
     
 }
@@ -448,6 +491,7 @@ void ofApp::drawFboTest_02(){
 //--------------------------------------------------------------
 void ofApp::draw(){
     
+    ofFill();
     myGlitch_00.generateFx();
     myGlitch_01.generateFx();
     myGlitch_02.generateFx();
@@ -464,6 +508,10 @@ void ofApp::draw(){
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
+    
+    if (key == ',') switchScene = 0;
+    if (key == '.') switchScene = 1;
+    if (key == '/') switchScene = 2;
     
     if (key == '1'){
         myGlitch_00.setFx(OFXPOSTGLITCH_CONVERGENCE, true);
@@ -537,17 +585,16 @@ void ofApp::keyPressed(int key){
     }
     if (key == 'y'){
         myGlitch_00.setFx(OFXPOSTGLITCH_CR_REDINVERT, true);
-        myGlitch_01.setFx(OFXPOSTGLITCH_CR_REDINVERT,	true);
-        myGlitch_02.setFx(OFXPOSTGLITCH_CR_REDINVERT,	true);
+        myGlitch_01.setFx(OFXPOSTGLITCH_CR_REDINVERT, true);
+        myGlitch_02.setFx(OFXPOSTGLITCH_CR_REDINVERT, true);
     }
     if (key == 'u'){
-        myGlitch_00.setFx(OFXPOSTGLITCH_CR_GREENINVERT	, true);
+        myGlitch_00.setFx(OFXPOSTGLITCH_CR_GREENINVERT, true);
         myGlitch_01.setFx(OFXPOSTGLITCH_CR_GREENINVERT, true);
         myGlitch_02.setFx(OFXPOSTGLITCH_CR_GREENINVERT, true);
     }
-    if (key == ',') switchScene = 0;
-    if (key == '.') switchScene = 1;
-    if (key == '/') switchScene = 2;
+
+    if (key == ']') flick = true;
     if (key == '=') isFinished = true;
     
 }
@@ -627,8 +674,8 @@ void ofApp::keyReleased(int key){
     }
     if (key == 'y'){
         myGlitch_00.setFx(OFXPOSTGLITCH_CR_REDINVERT, false);
-        myGlitch_01.setFx(OFXPOSTGLITCH_CR_REDINVERT,	false);
-        myGlitch_02.setFx(OFXPOSTGLITCH_CR_REDINVERT,	false);
+        myGlitch_01.setFx(OFXPOSTGLITCH_CR_REDINVERT, false);
+        myGlitch_02.setFx(OFXPOSTGLITCH_CR_REDINVERT, false);
     }
     if (key == 'u'){
         myGlitch_00.setFx(OFXPOSTGLITCH_CR_GREENINVERT, false);
