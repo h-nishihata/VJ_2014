@@ -7,9 +7,9 @@ void ofApp::setup(){
     ofSetFrameRate(60);
     ofEnableDepthTest();
     
-    myFbo_00.allocate(1440, 900, GL_RGBA);
-    myFbo_01.allocate(1440, 900, GL_RGBA);
-    myFbo_02.allocate(1440, 900, GL_RGBA);
+    myFbo_00.allocate(1920, 1200, GL_RGBA);
+    myFbo_01.allocate(1920, 1200, GL_RGBA);
+    myFbo_02.allocate(1920, 1200, GL_RGBA);
     myGlitch_00.setup(&myFbo_00);
     myGlitch_01.setup(&myFbo_01);
     myGlitch_02.setup(&myFbo_02);
@@ -42,7 +42,7 @@ void ofApp::setup(){
 // lights
     light.enable();
     light.setSpotlight();
-    light.setPosition(50, 80, 150);
+    light.setPosition(0, 80, 150);
     light.lookAt(testNodes[0]);
     
     light.setAmbientColor(ofColor(r, g, b, 255));
@@ -120,65 +120,67 @@ void ofApp::update(){
     }
 
     if (ofGetKeyPressed('z')){
-        flick = false;
-        isFinished = false;
         if (rFlag == false) {
             if (r <= 0) {
                 rFlag = true;
             }else{
-                r --;
+                r -=3;
             }
         }else if (rFlag == true) {
             if (r >= 255) {
                 rFlag = false;
             }else{
-                r ++;
+                r +=3;
             }
         }
     }
     if (ofGetKeyPressed('x')) {
-        flick = false;
-        isFinished = false;
         if (gFlag == false) {
             if (g <= 0) {
                 gFlag = true;
             }else{
-                g --;
+                g -=3;
             }
         }else if (gFlag == true) {
             if (g >= 255) {
                 gFlag = false;
             }else{
-                g ++;
+                g +=3;
             }
         }
     }
     if (ofGetKeyPressed('c')){
-        flick = false;
-        isFinished = false;
         if (bFlag == false) {
             if (b <= 0) {
                 bFlag = true;
             }else{
-                b --;
+                b -=3;
             }
         }else if (bFlag == true) {
             if (b >= 255) {
                 bFlag = false;
             }else{
-                b ++;
+                b +=3;
             }
         }
     }
-    if (flick == true) {
-        if (r < 255) r++;
-        if (g < 255) g++;
-        if (b < 255) b++;
-    }
+//    if (flick == true) {
+//        isFinished = false;
+//        if (r < 255) r+=5;
+//        if (g < 255) g+=5;
+//        if (b < 255) b+=5;
+//        if (r >= 255 && g >= 255 && g >=255) {
+//            flick = false;
+//        }
+//    }
     if (isFinished == true) {
-        if (r > 0) r--;
-        if (g > 0) g--;
-        if (b > 0) b--;
+//        flick = false;
+        if (r > 10) r--;
+        if (g > 10) g--;
+        if (b > 10) b--;
+//        if (r <= 0 && g <= 0 && g <= 0) {
+//            isFinished = false;
+//        }
     }
     light.setAmbientColor(ofColor(r, g, b, 255));
     light.setDiffuseColor(ofColor(r, g, b));
@@ -198,7 +200,7 @@ void ofApp::update(){
         triggerArc = false;
     }
     
-//  strokes
+//  trail
     cam[2].setPosition(current.x, current.y+50, current.z-80);
     previous = current;
     
@@ -264,7 +266,7 @@ void ofApp::drawFboTest_00(){
     
     ofEnableAlphaBlending();
     ofClear(255, 255, 255, 0);
-    ofBackgroundGradient(ofColor(85, 78, 68), ofColor(0,0,255), OF_GRADIENT_LINEAR);
+    ofBackgroundGradient(ofColor(0,0,255), ofColor(85, 78, 68), OF_GRADIENT_LINEAR);
     
     
     for (int i=0; i<kNumCameras; i++) {
@@ -275,6 +277,7 @@ void ofApp::drawFboTest_00(){
     
     cam[0].begin();
     
+//  grids
     for(int i = -3; i < 3; i++) {
         ofPushMatrix();
         
@@ -297,7 +300,7 @@ void ofApp::drawFboTest_00(){
         ofPopMatrix();
     }
     
-    
+//  boxes
     for(int i = 0; i < boxCount; i++) {
         ofPushMatrix();
         float t = (ofGetElapsedTimef() + i * spacing) * movementSpeed;
@@ -336,7 +339,6 @@ void ofApp::drawFboTest_00(){
         ofRect(ofGetWidth()/2 - w * i, ofGetHeight()/2, w, h);
         ofRect(ofGetWidth()/2 + w * i, ofGetHeight()/2, w, -h);
     }
-
 }
 
 //--------------------------------------------------------------
@@ -344,15 +346,18 @@ void ofApp::drawFboTest_01(){
 
     ofEnableAlphaBlending();
     ofClear(255, 255, 255, 0);
-    ofBackgroundGradient(ofColor(85, 78, 68), ofColor(190,50,200), OF_GRADIENT_LINEAR);
+    ofBackgroundGradient(ofColor(190,50,200), ofColor(85, 78, 68), OF_GRADIENT_LINEAR);
     
     cam[1].begin();
+
+//  boxes
     ofSetLineWidth(1);
     ofSetColor(255);
     for (int i = 0; i < 22; i++) {
         for (int j = 0; j < 22; j++) {
-            box.set(20, magnitude[j*22+i]*500, 20);
-            box.setPosition(i*80, 0, j*80);
+            int height = magnitude[j*22+i]*300;
+            box.set(20, height, 20);
+            box.setPosition(i*80, 0+height, j*80);
             if (xFlag == true) {
                 box.draw();
             }else{
@@ -430,18 +435,16 @@ void ofApp::drawFboTest_02(){
 
     ofEnableAlphaBlending();
     ofClear(255, 255, 255, 0);
-    ofBackgroundGradient(ofColor(85, 78, 68), ofColor(190,50,200), OF_GRADIENT_LINEAR);
+    ofBackgroundGradient(ofColor(190,50,200), ofColor(85, 78, 68), OF_GRADIENT_LINEAR);
     
     cam[2].begin();
-
+    
+//  trail
         ofSetLineWidth(2);
         ofSetColor(255);
         pathLines.draw();
 
-    
-        ofLine(current.x, current.y, current.z, current.x, -500, current.z);
-    
-    
+//  box
         string str = ofToString(current, 2);
         ofDrawBitmapString(str, current);
         ofTranslate(current);
@@ -455,6 +458,7 @@ void ofApp::drawFboTest_02(){
             bx.drawWireframe();
         }
     
+//  frames
     ofNoFill();
     ofSetLineWidth(8);
     ofRect(-15, -15, 30, 30);
@@ -462,6 +466,7 @@ void ofApp::drawFboTest_02(){
     ofSetLineWidth(5);
     ofRect(-25, -25, 50, 50);
     
+//  triangles
     if (r > 100 && g > 100 && b > 100) {
         for(int i = 0; i < 100; i++) {
             ofPushMatrix();
@@ -491,12 +496,15 @@ void ofApp::drawFboTest_02(){
 //--------------------------------------------------------------
 void ofApp::draw(){
     
+    ofHideCursor();
+    
     ofFill();
     myGlitch_00.generateFx();
     myGlitch_01.generateFx();
     myGlitch_02.generateFx();
     ofSetColor(255);
     
+    if (r != 0 && g != 0 && b!= 0) {
     if (switchScene == 0) {
         myFbo_00.draw(0, 0);
     }else if (switchScene == 1) {
@@ -504,6 +512,8 @@ void ofApp::draw(){
     }else if (switchScene == 2) {
         myFbo_02.draw(0, 0);
     }
+    }
+
 }
 
 //--------------------------------------------------------------
@@ -594,7 +604,7 @@ void ofApp::keyPressed(int key){
         myGlitch_02.setFx(OFXPOSTGLITCH_CR_GREENINVERT, true);
     }
 
-    if (key == ']') flick = true;
+//    if (key == ']') flick = true;
     if (key == '=') isFinished = true;
     
 }

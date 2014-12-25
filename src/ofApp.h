@@ -69,7 +69,7 @@ class ofApp : public ofBaseApp{
         ofxPostGlitch	myGlitch_01;
         ofxPostGlitch	myGlitch_02;
     
-        bool flick;
+//        bool flick;
         bool isFinished;
 
     
@@ -85,4 +85,5 @@ class ofApp : public ofBaseApp{
         int fft_size;
         
         fft myfft; //FFTクラスのインスタンス
+    
 };
